@@ -40,9 +40,11 @@ model Person {
 
 model Testimony {
   id        Int      @id @default(autoincrement())
+  ruj       String?
   status    String
   type      String
   content   String
+  facts     String[] @default([])
   dateAdded DateTime @default(now()) @map("date_added")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -61,9 +63,9 @@ model Testimony {
 }
 
 model Factor {
-  id      Int    @id @default(autoincrement())
-  content String
-  name    String
+  id       Int    @id @default(autoincrement())
+  code     String
+  verbatim String
 
   projectId Int     @map("project_id")
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -78,8 +80,11 @@ model Factor {
 }
 
 model Event {
-  id      Int    @id @default(autoincrement())
-  content String
+  id       Int      @id @default(autoincrement())
+  content  String
+  title    String
+  verbatims String[]
+  linkedTo String?  @map("linked_to")
 
   projectId Int     @map("project_id")
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -87,11 +92,34 @@ model Event {
   testimonyId Int       @map("testimony_id")
   testimony   Testimony @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
 
-  beginAt DateTime? @map("begin_at")
-  endAt   DateTime? @map("end_at")
+  beginAt    DateTime? @map("begin_at")
+  endAt      DateTime? @map("end_at")
+  beginAtRaw String?   @map("begin_at_raw")
+  endAtRaw   String?   @map("end_at_raw")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("events")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model LoginAttempt {
+  id          Int      @id @default(autoincrement())
+  ip          String   @unique
+  attempts    Int      @default(1)
+  windowStart DateTime @map("window_start")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("login_attempts")
 }
