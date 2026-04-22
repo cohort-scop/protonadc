@@ -9,7 +9,7 @@ import AppHeader from '~/components/AppHeader'
 import InfoModal from '~/components/InfoModal'
 import FilterGroup from '~/components/FilterGroup'
 import { requireAuth } from '~/lib/auth.server'
-import { filterTestimoniesByFactors, calculateFactorCounts, getCategoryColor, getFactorLabel } from '~/utils/testimony-helpers'
+import { filterTestimoniesByFactors, calculateFactorCounts, getCategoryColor, getFactorLabel, getTypeCategory, TYPE_CATEGORIES } from '~/utils/testimony-helpers'
 import { FACTORS } from '~/constants/factors'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -25,11 +25,9 @@ const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }
 }
 
 const TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  'AGISSEMENT DIRECT': { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' },
-  'TÉMOIN INDIRECT': { bg: 'bg-gray-100', border: 'border-gray-500', text: 'text-gray-800' },
-  'CONTEXTE STRUCTUREL': { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-800' },
+  'CHARGE': { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-800' },
   'DÉCHARGE': { bg: 'bg-green-50', border: 'border-green-500', text: 'text-green-800' },
-  'DIRECT ET STRUCTUREL': { bg: 'bg-purple-50', border: 'border-purple-500', text: 'text-purple-800' },
+  'NI CHARGE NI DÉCHARGE': { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-700' },
 }
 
 const CATEGORIES = ['Thématiques', 'Organisationnels', 'Relationnels', 'Individuels', 'Conséquences']
@@ -46,12 +44,16 @@ export default function TestiMobilePage() {
   const [openModal, setOpenModal] = useState<'statut' | 'type' | null>(null)
 
   const allStatuses = [...new Set(testimonies.map(t => t.status))]
-  const allTypes = [...new Set(testimonies.map(t => t.type))]
+  const allTypes = TYPE_CATEGORIES
   const factorCounts = calculateFactorCounts(testimonies)
 
-  const filtered = filterTestimoniesByFactors(testimonies, selectedFactors)
+  const testimoniesByFactors = filterTestimoniesByFactors(testimonies, selectedFactors)
+  const testimoniesForStatusCount = testimoniesByFactors
+    .filter(t => selectedTypes.length === 0 || selectedTypes.includes(getTypeCategory(t.type)))
+  const testimoniesForTypeCount = testimoniesByFactors
     .filter(t => selectedStatuses.length === 0 || selectedStatuses.includes(t.status))
-    .filter(t => selectedTypes.length === 0 || selectedTypes.includes(t.type))
+  const filtered = testimoniesForStatusCount
+    .filter(t => selectedStatuses.length === 0 || selectedStatuses.includes(t.status))
 
   const selectedTestimony = selectedTestimonyId
     ? (testimonies.find(t => t.id === selectedTestimonyId) ?? null)
@@ -87,7 +89,7 @@ export default function TestiMobilePage() {
         <div className="grid grid-cols-2 gap-6 mb-6">
           <FilterGroup
             label="Statut"
-            items={allStatuses.map(s => ({ value: s, count: testimonies.filter(t => t.status === s).length }))}
+            items={allStatuses.map(s => ({ value: s, count: testimoniesForStatusCount.filter(t => t.status === s).length }))}
             selected={selectedStatuses}
             colors={STATUS_COLORS}
             onToggle={toggleStatus}
@@ -96,7 +98,7 @@ export default function TestiMobilePage() {
           />
           <FilterGroup
             label="Type"
-            items={allTypes.map(t => ({ value: t, count: testimonies.filter(x => x.type === t).length }))}
+            items={allTypes.map(t => ({ value: t, count: testimoniesForTypeCount.filter(x => getTypeCategory(x.type) === t).length }))}
             selected={selectedTypes}
             colors={TYPE_COLORS}
             onToggle={toggleType}
@@ -222,7 +224,7 @@ export default function TestiMobilePage() {
             <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
               <FilterGroup
                 label="Statut"
-                items={allStatuses.map(s => ({ value: s, count: testimonies.filter(t => t.status === s).length }))}
+                items={allStatuses.map(s => ({ value: s, count: testimoniesForStatusCount.filter(t => t.status === s).length }))}
                 selected={selectedStatuses}
                 colors={STATUS_COLORS}
                 onToggle={toggleStatus}
@@ -231,7 +233,7 @@ export default function TestiMobilePage() {
               />
               <FilterGroup
                 label="Type"
-                items={allTypes.map(t => ({ value: t, count: testimonies.filter(x => x.type === t).length }))}
+                items={allTypes.map(t => ({ value: t, count: testimoniesForTypeCount.filter(x => getTypeCategory(x.type) === t).length }))}
                 selected={selectedTypes}
                 colors={TYPE_COLORS}
                 onToggle={toggleType}
@@ -254,7 +256,8 @@ export default function TestiMobilePage() {
         <div className="px-4 pb-8 space-y-3">
           {filtered.map(t => {
             const sc = STATUS_COLORS[t.status] ?? { bg: 'bg-gray-50', border: 'border-gray-300', text: 'text-gray-700' }
-            const tc = TYPE_COLORS[t.type] ?? { bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-600' }
+            const typeCategory = getTypeCategory(t.type)
+            const tc = TYPE_COLORS[typeCategory] ?? { bg: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-600' }
             return (
               <button
                 key={t.id}
@@ -268,7 +271,7 @@ export default function TestiMobilePage() {
                   </span>
                 </div>
                 <span className={`inline-block text-xs px-2 py-0.5 rounded-full border font-medium mb-2 ${tc.bg} ${tc.border} ${tc.text}`}>
-                  {t.type}
+                  {typeCategory}
                 </span>
                 <p className="text-xs text-gray-500 line-clamp-2 mb-2">{t.content.slice(0, 120)}…</p>
                 {t.factors.length > 0 && (
@@ -313,11 +316,9 @@ export default function TestiMobilePage() {
         <InfoModal
           title="Types de témoignage"
           items={[
-            { label: 'Agissement direct', color: 'text-red-800', desc: "Le témoin décrit des agissements dont il a été personnellement la cible." },
-            { label: 'Décharge', color: 'text-green-800', desc: "Le témoin atteste n'avoir jamais constaté d'agissements problématiques." },
-            { label: 'Direct et structurel', color: 'text-purple-800', desc: "Le témoignage combine une expérience personnelle et des observations structurelles." },
-            { label: 'Témoin indirect', color: 'text-gray-700', desc: "Le témoin décrit des faits observés sur des collègues sans en avoir été victime directe." },
-            { label: 'Contexte structurel', color: 'text-indigo-800', desc: "Le témoignage porte principalement sur le contexte organisationnel ou managérial." },
+            { label: 'Charge', color: 'text-red-800', desc: "Le témoin rapporte des agissements problématiques — subis personnellement ou observés chez des collègues. Met en cause le comportement du mis en cause." },
+            { label: 'Décharge', color: 'text-green-800', desc: "Le témoin atteste n'avoir jamais constaté d'agissements problématiques. Dédouane le mis en cause." },
+            { label: 'Ni charge ni décharge', color: 'text-gray-700', desc: "Le témoignage porte sur le contexte organisationnel ou managérial sans rapporter d'agissement ciblé ni dédouaner le mis en cause." },
           ]}
           onClose={() => setOpenModal(null)}
         />

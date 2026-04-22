@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Testimony } from '~/data/testimonies';
-import { getFactorLabel, getFactorColor } from '~/utils/testimony-helpers';
+import { getFactorLabel, getFactorColor, getTypeCategory } from '~/utils/testimony-helpers';
 import { FACTORS } from '~/constants/factors';
 import Markdown from 'react-markdown';
 
@@ -40,7 +40,7 @@ export default function TestimonySidebar({ testimony, onClose }: TestimonySideba
               {testimony.status}
             </span>
             <span className="inline-block px-3 py-1 text-sm rounded bg-gray-700 text-white">
-              {testimony.type}
+              {getTypeCategory(testimony.type)}
             </span>
           </div>
         </div>

@@ -1,5 +1,5 @@
 db-start:
-	docker run --name protonadc-db -e POSTGRES_USER=protonadc -e POSTGRES_PASSWORD=protonadc -e POSTGRES_DB=protonadc -p 5433:5432 -d postgres:16
+	docker run --name protonadc-db -e POSTGRES_USER=protonadc -e POSTGRES_PASSWORD=protonadc -e POSTGRES_DB=protonadc -p 5433:5432 -d postgres:17.8
 
 db-remove:
 	docker rm -f protonadc-db
@@ -33,3 +33,16 @@ update-username:
 
 reset-rate-limit:
 	set -a; . ./.env; set +a; npx tsx -e "import { prisma } from './app/lib/prisma.ts'; async function main() { const r = await prisma.loginAttempt.deleteMany(); console.log('Deleted:', r.count, 'records'); } main().finally(() => prisma.\$$disconnect());"
+
+dump:
+	docker exec protonadc-db pg_dump "URL" \
+		-Fc \
+		--no-owner \
+		--no-privileges \
+		--no-acl > neon-backup.dump
+
+restore:
+	docker exec -i protonadc-db pg_restore \
+		-U protonadc -d protonadc \
+		--no-owner --no-privileges --clean --if-exists \
+		< neon-backup.dump

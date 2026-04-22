@@ -118,34 +118,3 @@ Voir `CLAUDE.md` pour le workflow complet d'import assisté par IA (qualificatio
 | `/chrono-mobile` | Vue chronologie (responsive mobile + desktop) |
 | `/login` | Page de connexion |
 | `/logout` | Déconnexion |
-
----
-
-## Architecture
-
-```
-app/
-├── components/       # Composants réutilisables
-│   ├── AppHeader.tsx     # Header responsive (mobile + desktop)
-│   ├── FilterGroup.tsx   # Groupe de filtres (statut/type)
-│   ├── InfoModal.tsx     # Modale d'information générique
-│   ├── OverviewStats.tsx # Vue d'ensemble des facteurs
-│   └── TestimonySidebar.tsx
-├── import/           # Scripts CLI d'import
-│   ├── cli.ts            # Import principal
-│   ├── cli-create-user.ts
-│   ├── cli-update-user.ts
-│   ├── cli-create-project.ts
-│   └── cli-delete.ts
-├── lib/
-│   ├── auth.server.ts    # Authentification + rate limiting
-│   ├── prisma.ts
-│   └── testimony.repository.ts
-└── routes/
-    ├── testi-mobile.tsx  # Vue liste responsive
-    ├── chrono-mobile.tsx # Vue chronologie responsive
-    ├── login.tsx
-    └── logout.tsx
-prisma/
-└── schema.prisma
-```

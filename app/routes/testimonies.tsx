@@ -60,9 +60,13 @@ export default function TestimoniesPage() {
   const toggleType = (t: string) =>
     setSelectedTypes((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
 
-  const filteredTestimonies = filterTestimoniesByFactors(testimonies, selectedFactors)
-    .filter((t) => selectedStatuses.length === 0 || selectedStatuses.includes(t.status))
+  const testimoniesByFactors = filterTestimoniesByFactors(testimonies, selectedFactors);
+  const testimoniesForStatusCount = testimoniesByFactors
     .filter((t) => selectedTypes.length === 0 || selectedTypes.includes(t.type));
+  const testimoniesForTypeCount = testimoniesByFactors
+    .filter((t) => selectedStatuses.length === 0 || selectedStatuses.includes(t.status));
+  const filteredTestimonies = testimoniesForStatusCount
+    .filter((t) => selectedStatuses.length === 0 || selectedStatuses.includes(t.status));
 
   const handleFactorClick = (factorCode: string) => {
     setSelectedFactors((prev) =>
@@ -99,7 +103,7 @@ export default function TestimoniesPage() {
         <div className="grid grid-cols-2 gap-6 mb-6">
           <FilterGroup
             label="Statut"
-            items={allStatuses.map(s => ({ value: s, count: testimonies.filter(t => t.status === s).length }))}
+            items={allStatuses.map(s => ({ value: s, count: testimoniesForStatusCount.filter(t => t.status === s).length }))}
             selected={selectedStatuses}
             colors={STATUS_COLORS}
             onToggle={toggleStatus}
@@ -108,7 +112,7 @@ export default function TestimoniesPage() {
           />
           <FilterGroup
             label="Type"
-            items={allTypes.map(t => ({ value: t, count: testimonies.filter(x => x.type === t).length }))}
+            items={allTypes.map(t => ({ value: t, count: testimoniesForTypeCount.filter(x => x.type === t).length }))}
             selected={selectedTypes}
             colors={TYPE_COLORS}
             onToggle={toggleType}

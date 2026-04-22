@@ -1,12 +1,10 @@
 import type { Testimony } from '~/data/testimonies';
-import { getFactorColor } from '~/utils/testimony-helpers';
+import { getFactorColor, getTypeCategory } from '~/utils/testimony-helpers';
 
 const TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  'AGISSEMENT DIRECT':   { bg: 'bg-red-50',    border: 'border-red-400',    text: 'text-red-800' },
-  'TÉMOIN INDIRECT':     { bg: 'bg-gray-100',  border: 'border-gray-400',   text: 'text-gray-800' },
-  'CONTEXTE STRUCTUREL': { bg: 'bg-indigo-50', border: 'border-indigo-400', text: 'text-indigo-800' },
-  'DÉCHARGE':            { bg: 'bg-green-50',  border: 'border-green-400',  text: 'text-green-800' },
-  'DIRECT ET STRUCTUREL': { bg: 'bg-purple-50', border: 'border-purple-400', text: 'text-purple-800' },
+  'CHARGE':               { bg: 'bg-red-50',   border: 'border-red-400',   text: 'text-red-800' },
+  'DÉCHARGE':             { bg: 'bg-green-50', border: 'border-green-400', text: 'text-green-800' },
+  'NI CHARGE NI DÉCHARGE': { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-700' },
 };
 
 type TestimonyCardProps = {
@@ -56,10 +54,11 @@ export default function TestimonyCard({ testimony, isSelected, onClick }: Testim
               {testimony.status}
             </span>
             {(() => {
-              const c = TYPE_COLORS[testimony.type] ?? { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-800' };
+              const category = getTypeCategory(testimony.type);
+              const c = TYPE_COLORS[category] ?? { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-800' };
               return (
                 <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border ${c.bg} ${c.border} ${c.text}`}>
-                  {testimony.type}
+                  {category}
                 </span>
               );
             })()}

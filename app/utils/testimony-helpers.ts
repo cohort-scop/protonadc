@@ -82,3 +82,22 @@ export function getFactorCodesByCategory(category: string): string[] {
     .filter(([, entry]) => entry.category === category)
     .map(([code]) => code);
 }
+
+export type TypeCategory = 'CHARGE' | 'DÉCHARGE' | 'NI CHARGE NI DÉCHARGE';
+
+export const TYPE_CATEGORIES: TypeCategory[] = ['CHARGE', 'DÉCHARGE', 'NI CHARGE NI DÉCHARGE'];
+
+export function getTypeCategory(type: string): TypeCategory {
+  switch (type) {
+    case 'AGISSEMENT DIRECT':
+    case 'DIRECT ET STRUCTUREL':
+    case 'TÉMOIN INDIRECT':
+      return 'CHARGE';
+    case 'DÉCHARGE':
+      return 'DÉCHARGE';
+    case 'CONTEXTE STRUCTUREL':
+      return 'NI CHARGE NI DÉCHARGE';
+    default:
+      return 'NI CHARGE NI DÉCHARGE';
+  }
+}
